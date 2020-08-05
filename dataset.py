@@ -31,6 +31,7 @@ class DataSet():
             y_test - subset of y allocated for train, matching X_test
             train - X_train and y_train in one dataset, the column for y is the last column
             folds (list): list of [validation, train] subsets of the train data
+            bootstraps (list): list of bootstrapped datasets sampled from train data
         """
         
         data = pd.read_csv(path, header=header)
@@ -41,7 +42,7 @@ class DataSet():
         m = self.X.shape[0]
         self.y = data.iloc[:,label_col].values.reshape((m,1))
         self.column_names = data.columns
-        self.X_train, self.X_test, self.y_train, self.y_test, self.train, self.folds = None,None,None,None,None,None
+        self.X_train, self.X_test, self.y_train, self.y_test, self.train, self.folds, self.bootstraps = None,None,None,None,None,None, None
     
     
     
@@ -86,15 +87,34 @@ class DataSet():
             validation = self.train[validation_indexes]
             y_val = self.y_train[validation_indexes]
             self.folds.append({'train':train, 'validation':validation, 'y_val': y_val})
+    
+    
+    def bootStrap(self, n):
+        """
+        Create n new datasets using the bootstrap sampling method. Each dataset will include
+        the same number of samples as in our original train data, the samples will be chosen
+        randomly with replacement.
+        Params:
+            n (int): The desired number of bootstrapped datasets to be created
+        """
+        
+        self.bootstraps = []
+        m = self.train.shape[0]
+        
+        for i in range(n):
+            bootstrap_indexes = np.random.randint(m,size=m)
+            bootstrap = self.train[bootstrap_indexes]
+            self.bootstraps.append(bootstrap)
+        
 
-
-def main():
+# def main():
 
 # Usage example of the dataset object
-    d = DataSet('../../datasets/wdbc.data', label_col = 1, header=None)
-    d.trainTestSplit(80)
-    d.kFold(5)
+d = DataSet('../datasets/wdbc.data', label_col = 1, header=None)
+d.trainTestSplit(80)
+d.bootStrap(5)
+# d.kFold(5)
 
 
-if __name__ == '__main__':
-    main()
+# if __name__ == '__main__':
+#     main()
