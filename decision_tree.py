@@ -19,20 +19,27 @@ class DecisionTree():
         and value and pointers to 2 children nodes. The tree is built from the root node
         in the fit stage and is used to classify new samples in the predict stage.
         prune_value (int): The maximum depth the tree is allowed to grow to 
+        random_subset (int): For random trees, the size of random subset of columns to choose
+            for each split
     """
     def __init__(self):
         self.root = None
         self.prune_value = None
+        self.random_subset = None
     
     
-    def fit(self, dataset, prune_value):
+    def fit(self, dataset, prune_value, random_subset=None):
         """
         The public training method, receives the training data, creates the root node
         out of it, and then calls the recursive __spitNode method on the root, which in turn
         builds the whole tree.
         Params:
             dataset (numpy array): the 2d labeled training data, labels are assumed to be in the last column
+            prune_value (int): The maximum depth the tree is allowed to grow to 
+            random_subset (int): For random trees, the size of random subset of columns to choose
+                for each split
         """
+        self.random_subset = random_subset if random_subset else dataset.shape[1]-1
         self.prune_value = prune_value
         self.root = Node(None, None, None, None, 0, dataset)
         self.__splitNode(self.root)
@@ -111,19 +118,26 @@ class DecisionTree():
         proccess. It iterates over all the features, gets the optimal split value for a feature
         and the corresponding gini value for the split using the __getSplitValue method. The method
         finds the minimum gini value and returns the corresponding feature and split value.
+        If the tree was defined as a random tree, it will choose a random subset of columns to find the gini
+        value for. If not, it will search through all columns.
         Params:
             dataset (numpy array of m*n): the 2d labeled training data
         Returns:
             feature (int): index of optimal feature to split on
             split_val (float): optimal value to split on feature
         """
-        gini_values = np.ones((dataset.shape[1]-1,2))
         
-        for i in range(dataset.shape[1]-1):
-            gini_values[i,:] = self.__getSplitValue(dataset, i)
+        n = dataset.shape[1]-1
+        columns = np.random.choice(np.arange(n), self.random_subset, replace=False)
         
-        feature = gini_values[:,1].argmin()
-        split_val = gini_values[feature,0]
+        gini_values = np.ones((self.random_subset,2))
+        
+        for i,col in enumerate(columns):
+            gini_values[i,:] = self.__getSplitValue(dataset, col)
+                
+        min_index = gini_values[:,1].argmin()
+        split_val = gini_values[min_index,0]
+        feature = columns[min_index]
         
         return (feature, split_val)
     
@@ -228,35 +242,38 @@ class Node():
 def main():
     # Example usage of the DecisionTree class
     # Prepare dataset, encode labels and split to train and test
-    d = DataSet('../../datasets/wdbc.data', label_col = 1, header=None)
+    d = DataSet('../datasets/wdbc.data', label_col = 1, header=None)
     d.y[np.where(d.y == 'M')] = 1
     d.y[np.where(d.y == 'B')] = 0
     d.y = d.y.astype(np.int)
     d.trainTestSplit(80)
     
-    # find optimal prune value with cross validation
-    d.kFold(5)
-    prune_options = [2,4,6,8]
-    accuracies = []
+    # # find optimal prune value with cross validation
+    # d.kFold(5)
+    # prune_options = [2,4,6,8]
+    # accuracies = []
     
-    for option in prune_options:
+    # for option in prune_options:
         
-        fold_accuracies = []
+    #     fold_accuracies = []
         
-        for fold in d.folds:
-            t = DecisionTree()
-            t.fit(fold['train'], option)
-            predictions = t.predict(fold['validation'])
-            fold_accuracy = np.mean(predictions == fold['y_val'])
-            fold_accuracies.append(fold_accuracy)
+    #     for fold in d.folds:
+    #         t = DecisionTree()
+    #         t.fit(fold['train'], option)
+    #         predictions = t.predict(fold['validation'])
+    #         fold_accuracy = np.mean(predictions == fold['y_val'])
+    #         fold_accuracies.append(fold_accuracy)
             
-        accuracies.append(sum(fold_accuracies) / len(fold_accuracies))
+    #     accuracies.append(sum(fold_accuracies) / len(fold_accuracies))
     
-    optimal_prune = prune_options[np.array(accuracies).argmax()]
+    # optimal_prune = prune_options[np.array(accuracies).argmax()]
+    optimal_prune = 6
+    random_subset = 6
     
     # Train final model, test and print accuracy
     t = DecisionTree()
-    t.fit(d.train, optimal_prune)
+    # t.fit(d.train, optimal_prune, random_subset)
+    t.fit(d.train, optimal_prune, random_subset)
     test_pred = t.predict(d.X_test)
     train_pred = t.predict(d.X_train)
     
