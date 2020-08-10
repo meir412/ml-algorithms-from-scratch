@@ -106,6 +106,38 @@ class DataSet():
             bootstrap = self.train[bootstrap_indexes]
             self.bootstraps.append(bootstrap)
         
+    
+    def addOnes(self):
+        """
+        Append a dummy feature consisting of 1s to the left of the X matrix.
+        This is used in order to compute the free coefficient (bias).
+        This should be run before trainTestSplit
+        """
+        self.X = np.column_stack((np.ones_like(self.y),self.X))
+    
+    
+    def scaleFeatures(self, type='standartization'):
+        """
+        Scale features (columns of X), accepts different scaling methods.
+        Should be run before trainTestSplit.
+        Params:
+            type (string): can take one of the following values: {standartization, rescale, mean, unit_length}
+                standartization: subtract the feature mean and divide by feature std
+                rescale: subtract the feature min and divide by feature range
+                mean: subtract the feature mean and divide by feature range
+                unit_length: divide by the euclidian length (l2 norm) of the feature
+        """
+        if type =='standartization':
+            self.X = (self.X - self.X.mean(axis=0))/self.X.std(axis=0)
+        
+        if type =='rescale':
+            self.X = (self.X - self.X.min(axis=0))/(self.X.max(axis=0) - self.X.min(axis=0))
+        
+        if type == 'mean':
+            self.X = (self.X - self.X.mean(axis=0))/(self.X.max(axis=0) - self.X.min(axis=0))
+        
+        if type == 'unit_length':
+            self.X = self.X / np.linalg.norm(self.X,axis=0)
 
 # def main():
 
