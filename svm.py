@@ -54,9 +54,9 @@ class Svm():
         
         for i,_ in enumerate(X):
             if h[i]*y[i] < 1:
-                gradient += self.w + self.C*(-X[i,]*y[i]).reshape((n,1))
+                gradient += 2*self.w + self.C*(-X[i,]*y[i]).reshape((n,1))
             else:
-                gradient += self.w
+                gradient += 2*self.w
         
         return gradient
             
