@@ -139,14 +139,14 @@ class DataSet():
         if type == 'unit_length':
             self.X = self.X / np.linalg.norm(self.X,axis=0)
 
-# def main():
+def main():
 
-# Usage example of the dataset object
-d = DataSet('../datasets/wdbc.data', label_col = 1, header=None)
-d.trainTestSplit(80)
-d.bootStrap(5)
-# d.kFold(5)
+    # Usage example of the dataset object
+    d = DataSet('../datasets/wdbc.data', label_col = 1, header=None)
+    d.trainTestSplit(80)
+    d.bootStrap(5)
+    # d.kFold(5)
 
 
-# if __name__ == '__main__':
-#     main()
+if __name__ == '__main__':
+    main()
