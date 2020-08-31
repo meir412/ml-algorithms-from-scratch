@@ -10,10 +10,12 @@ class DataSet():
     to split the dataset into train and test sets using the class `trainTestSplit` method.
     """   
 
-    def __init__(self, path, label_col = -1, header='infer'):
+    def __init__(self, path=None, label_col = -1, header='infer'):
         """
         Initiate new DataSet instance, load dataset as a pandas dataframe, split into X
         (features), and y (target).
+        If no path is specified, the object will still be created and its <X> and <y> attributes can
+        be set manually.
         **note: all _train and _test subsets are initiated as None and must be extracted using
         the trainTestSplit method.
         params:
@@ -33,15 +35,13 @@ class DataSet():
             folds (list): list of [validation, train] subsets of the train data
             bootstraps (list): list of bootstrapped datasets sampled from train data
         """
-        
-        data = pd.read_csv(path, header=header)
+        if path != None:
+            data = pd.read_csv(path, header=header)
+            self.X = data.drop(data.columns[label_col], axis=1).values
+            m = self.X.shape[0]
+            self.y = data.iloc[:,label_col].values.reshape((m,1))
+            self.column_names = data.columns
             
-            
-        data = pd.read_csv(path)
-        self.X = data.drop(data.columns[label_col], axis=1).values
-        m = self.X.shape[0]
-        self.y = data.iloc[:,label_col].values.reshape((m,1))
-        self.column_names = data.columns
         self.X_train, self.X_test, self.y_train, self.y_test, self.train, self.folds, self.bootstraps = None,None,None,None,None,None, None
     
     
